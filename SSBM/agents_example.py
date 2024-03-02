@@ -21,7 +21,9 @@ parser.add_argument("--iso", default="/home/vlab/SSBM/ssbm.iso", type=str,
 args = parser.parse_args()
 
 agent = DQNAgent()
-players = [agent, CPU(enums.Character.KIRBY, 9)] #CPU(enums.Character.KIRBY, 5)]
+# agent.policy_net = torch.load("", map_location=agent.device)
+# agent.policy_net.eval()
+players = [agent, CPU(enums.Character.FOX, 9)] #CPU(enums.Character.KIRBY, 5)]
 
 env = MeleeEnv(args.iso, players, fast_forward=True, ai_starts_game=True)
 
