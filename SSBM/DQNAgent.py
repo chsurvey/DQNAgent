@@ -132,7 +132,6 @@ class DQNAgent(Agent):
             target_net_state_dict[key] = policy_net_state_dict[key]*self.TAU + target_net_state_dict[key]*(1-self.TAU)
         self.target_net.load_state_dict(target_net_state_dict)"""
         if self.steps_done % 1000 == 0:
-            print(self.steps_done)
             # print("sync!!") 
             for key in policy_net_state_dict:
                 target_net_state_dict[key] = policy_net_state_dict[key]
