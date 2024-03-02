@@ -70,10 +70,10 @@ class DQNAgent(Agent):
         self.character = enums.Character.FOX
         
         self.BATCH_SIZE = 512
-        self.GAMMA = 0.99
-        self.EPS_START = 0.9
-        self.EPS_END = 0.05
-        self.EPS_DECAY = 1000
+        self.GAMMA = 0.98
+        self.EPS_START = 0.1 #0.9
+        #self.EPS_END = 0.05
+        #self.EPS_DECAY = 1000
         self.TAU = 0.005
         self.LR = 1e-4
         
@@ -83,7 +83,7 @@ class DQNAgent(Agent):
         self.observation_space = ObservationSpace()
         self.action = 0
         self.steps_done = 0
-        self.replay_buffer = ReplayMemory(50000)
+        self.replay_buffer = ReplayMemory(10000)
     
     def convert_state(self, state):
         # state, done = env.step()
@@ -94,7 +94,8 @@ class DQNAgent(Agent):
     
     def select_action(self, gamestate):
         sample = random.random()
-        eps_threshold = self.EPS_END + (self.EPS_START - self.EPS_END) * math.exp(-1. * self.steps_done / self.EPS_DECAY)
+        eps_threshold = self.EPS_START
+        #eps_threshold = self.EPS_END + (self.EPS_START - self.EPS_END) * math.exp(-1. * self.steps_done / self.EPS_DECAY)
         self.steps_done += 1
         if sample > eps_threshold:
             state = self.convert_state(gamestate)
@@ -108,7 +109,6 @@ class DQNAgent(Agent):
         self.replay_buffer.push(state, action, reward, next_state, done)
         if len(self.replay_buffer) < self.BATCH_SIZE:
             return
-
         states, actions, rewards, next_states, dones = map(torch.cat, self.replay_buffer.sample(self.BATCH_SIZE))
         
         Q = self.policy_net(states).gather(1, actions)
@@ -127,9 +127,14 @@ class DQNAgent(Agent):
         
         target_net_state_dict = self.target_net.state_dict()
         policy_net_state_dict = self.policy_net.state_dict()
-        for key in policy_net_state_dict:
+        
+        """for key in policy_net_state_dict:
             target_net_state_dict[key] = policy_net_state_dict[key]*self.TAU + target_net_state_dict[key]*(1-self.TAU)
-        self.target_net.load_state_dict(target_net_state_dict)
+        self.target_net.load_state_dict(target_net_state_dict)"""
+        if self.steps_done % 20 == 0: 
+            for key in policy_net_state_dict:
+                target_net_state_dict[key] = policy_net_state_dict[key]
+            self.target_net.load_state_dict(target_net_state_dict)
         
     @from_action_space       # translate the action from action_space to controller input
     def act(self, state):
