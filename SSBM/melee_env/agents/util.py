@@ -64,17 +64,18 @@ class ObservationSpace:
             # self.total_reward += reward
             p1_dmg_dealt = (self.current_gamestate.players[1].percent - self.previous_gamestate.players[1].percent)
             p1_shield_loss_ratio = (60 - self.current_gamestate.players[1].shield_strength)/60
-            p1_stock_loss = int(self.current_gamestate.players[1].stock) - int(self.previous_gamestate.players[1].stock)
+            p1_stock_loss = self.previous_gamestate.players[1].stock - self.current_gamestate.players[1].stock
             p2_dmg_dealt = (self.current_gamestate.players[2].percent - self.previous_gamestate.players[2].percent)
             p2_shield_loss_ratio = (60 - self.current_gamestate.players[2].shield_strength)/60
-            p2_stock_loss = int(self.current_gamestate.players[2].stock) - int(self.previous_gamestate.players[2].stock)
-            
+            p2_stock_loss = self.previous_gamestate.players[2].stock - self.current_gamestate.players[2].stock
+
             w_dmg, w_shield, w_stock = 0.1, 0.1, 1
             p1_score = w_dmg * p2_dmg_dealt + w_shield * p2_shield_loss_ratio**4 + w_stock * p2_stock_loss
             p2_score = w_dmg * p1_dmg_dealt + w_shield * p1_shield_loss_ratio**4 + w_stock * p1_stock_loss
-            
+
             # p1 is agent so it's for p1
-            reward = p1_score - p2_score
+            reward = p1_score - 5 * p1_stock_loss
+            
             
         # previous observation will always have the correct number of players
         self.previous_observation = observation
