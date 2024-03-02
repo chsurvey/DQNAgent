@@ -96,7 +96,7 @@ class DQNAgent(Agent):
         sample = random.random()
         eps_threshold = self.EPS_START
         #eps_threshold = self.EPS_END + (self.EPS_START - self.EPS_END) * math.exp(-1. * self.steps_done / self.EPS_DECAY)
-        # self.steps_done += 1
+        self.steps_done += 1
         if sample > eps_threshold:
             state = self.convert_state(gamestate)
             with torch.no_grad():
@@ -131,7 +131,9 @@ class DQNAgent(Agent):
         """for key in policy_net_state_dict:
             target_net_state_dict[key] = policy_net_state_dict[key]*self.TAU + target_net_state_dict[key]*(1-self.TAU)
         self.target_net.load_state_dict(target_net_state_dict)"""
-        if self.steps_done % 1000 == 0: 
+        if self.steps_done % 1000 == 0:
+            print(self.steps_done)
+            # print("sync!!") 
             for key in policy_net_state_dict:
                 target_net_state_dict[key] = policy_net_state_dict[key]
             self.target_net.load_state_dict(target_net_state_dict)
