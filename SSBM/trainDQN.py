@@ -15,7 +15,7 @@ import torch.nn as nn
 import torch.optim as optim
 import torch.nn.functional as F
 
-from DQNAgent import DQNAgent
+from DQNAgent import DQNAgent, NstepDQNAgent
 
 parser = argparse.ArgumentParser(description="Example melee-env demonstration.")
 parser.add_argument("--iso", default="/home/vlab/SSBM/ssbm.iso", type=str, 
@@ -23,7 +23,7 @@ parser.add_argument("--iso", default="/home/vlab/SSBM/ssbm.iso", type=str,
 
 args = parser.parse_args()
 
-agent = DQNAgent()
+agent = NstepDQNAgent(n_step=10) #DQNAgent()
 #agent.policy_net = torch.load("/home/vlab/SSBM/melee-env/model_180.pth", map_location=agent.device)
 #agent.target_net = torch.load("/home/vlab/SSBM/melee-env/model_180.pth", map_location=agent.device)
 
@@ -48,16 +48,14 @@ for episode in range(episodes):
           
         next_gamestate, done = env.step()
         obs, reward, done, info = agent.observation_space(next_gamestate)
-        #if abs(reward) > 0.1:
-        #    print(reward)
         total_reward += reward
         
         reward = torch.tensor([reward], device=device)
         done = torch.tensor([1 if done else 0], device=device)
         state = agent.convert_state(gamestate)
         next_state = agent.convert_state(next_gamestate)
-
         agent.update(state, action, reward, next_state, done)
+        
         gamestate = next_gamestate
         #print(len(agent.replay_buffer))
     
@@ -69,6 +67,6 @@ for episode in range(episodes):
     plt.pause(0.05)
     
     if episode % 30 == 0:
-        torch.save(agent.policy_net, f'model_{episode}.pth')
+        torch.save(agent.policy_net, f'new_model_{episode}.pth')
         print(reward_list[-1])
         plt.savefig(f'reward_plot.png')
