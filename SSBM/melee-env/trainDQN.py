@@ -37,6 +37,8 @@ episode_list = []
 reward_list = []
 env.start()
 
+t = 0
+
 for episode in range(episodes):
     gamestate, done = env.setup(enums.Stage.BATTLEFIELD)
     total_reward = 0
@@ -49,24 +51,29 @@ for episode in range(episodes):
           
         next_gamestate, done = env.step()
         obs, reward, done, info = agent.observation_space(next_gamestate)
-        total_reward += reward
         
+        if done == True:
+            reward = -5 # die
+            
+        total_reward += reward
         reward = torch.tensor([reward], device=device)
         d = torch.tensor([1 if done else 0], device=device)
         state = agent.convert_state(gamestate)
         next_state = agent.convert_state(next_gamestate)
         agent.update(state, action, reward, next_state, d)
         
+        if abs(reward) == 5:
+            agent.nstep_buffer.clear()
+            episode_list.append(t + 1)
+            reward_list.append(total_reward)
+            plt.plot(episode_list, reward_list, color='blue')
+            plt.xlabel('Episode')
+            plt.ylabel('Total Reward')
+            plt.pause(0.05)
+            t += 1
+            total_reward = 0
+        
         gamestate = next_gamestate
-
-        #print(len(agent.replay_buffer))
-    
-    episode_list.append(episode + 1)
-    reward_list.append(total_reward)
-    plt.plot(episode_list, reward_list, color='blue')
-    plt.xlabel('Episode')
-    plt.ylabel('Total Reward')
-    plt.pause(0.05)
     
     if episode % 30 == 0:
         torch.save(agent.policy_net, f'/home/vlab/SSBM/nstepDQN/{agent.n_step}step_{episode}.pth')
